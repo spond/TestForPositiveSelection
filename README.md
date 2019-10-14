@@ -1,5 +1,8 @@
 TestForPositiveSelection
 ========================
+
+> 20191014 : updated to run with HyPhy v2.5.1
+
 ***RemoveDashes.py***<br>
 This python script cleans Fasta alignmnents prior to performing tests for positive selection: it deletes "columns" that contain at least one gap or any non-base symbols (i.e. not A, C, G, or T).
 
