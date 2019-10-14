@@ -1,108 +1,98 @@
-function PopulateModelMatrix (dummy)
-	{
-for (h = 0; h<64; h=h+1) {if (_Genetic_Code[h]==10) {ModelMatrixDimension = ModelMatrixDimension-1;}} /* stop codon */
-MG94HKY85_Matrix = {ModelMatrixDimension,ModelMatrixDimension};
+function PopulateModelMatrix () {
 
-hshift = 0;
-for (h=0; h<64; h=h+1)
-{
-	if (_Genetic_Code[h]==10) 
-	{
-		hshift = hshift+1;
-	}
-	else
-	{
-		vshift = hshift;
-		for (v = h+1; v<64; v=v+1)
-		{
-			diff = v-h;
-			if (_Genetic_Code[v]==10) 
-			{
-				vshift = vshift+1;
-			}
-			else
-			{
-			  	if ((h$4==v$4)||((diff%4==0)&&(h$16==v$16))||(diff%16==0)) /* one step */
-			  	{
-			  		if (h$4==v$4)
-			  		{
-			  			transition = v%4;
-			  			transition2= h%4;
-			  		}
-			  		else
-			  		{
-			  			if(diff%16==0)
-			  			{
-			  				transition = v$16;
-			  				transition2= h$16;
-			  			}
-			  			else
-			  			{
-			  				transition = v%16$4;
-			  				transition2= h%16$4;
-			  			}
-			  		}
-			  		if (_Genetic_Code[0][h]==_Genetic_Code[0][v]) /* synonymous */
-			  		{
-			  			if (Abs(transition-transition2)%2) /* transversion */
-			  			{
-			  				MG94HKY85_Matrix[h-hshift][v-vshift] := kappa*t*ref_pis__[transition__];
-			  				MG94HKY85_Matrix[v-vshift][h-hshift] := kappa*t*ref_pis__[transition2__];
-			  			}
-			  			else
-			  			{
-			  				MG94HKY85_Matrix[h-hshift][v-vshift] := t*ref_pis__[transition__];
-			  				MG94HKY85_Matrix[v-vshift][h-hshift] := t*ref_pis__[transition2__];
-			  			}
-				  	}
-			  		else
-			  		{
-			  			if (Abs(transition-transition2)%2) /* transversion */
-			  			{
-			  				MG94HKY85_Matrix[h-hshift][v-vshift] := omega*kappa*t*ref_pis__[transition__];
-			  				MG94HKY85_Matrix[v-vshift][h-hshift] := omega*kappa*t*ref_pis__[transition2__];
-			  			}
-			  			else
-			  			{
-			  				MG94HKY85_Matrix[h-hshift][v-vshift] := omega*t*ref_pis__[transition__];
-			  				MG94HKY85_Matrix[v-vshift][h-hshift] := omega*t*ref_pis__[transition2__];
-			  			}
-		  			}
-			  	}
-			 }
-		 }
-	}	
+    ModelMatrixDimension = ModelMatrixDimension - (+_Genetic_Code["_MATRIX_ELEMENT_VALUE_"] == 10);
+    hshift = 0;
+    for (h=0; h<64; h=h+1)
+    {
+        if (_Genetic_Code[h]==10) 
+        {
+            hshift = hshift+1;
+        }
+        else
+        {
+            vshift = hshift;
+            for (v = h+1; v<64; v=v+1)
+            {
+                diff = v-h;
+                if (_Genetic_Code[v]==10) 
+                {
+                    vshift = vshift+1;
+                }
+                else
+                {
+                    if ((h$4==v$4)||((diff%4==0)&&(h$16==v$16))||(diff%16==0)) /* one step */
+                    {
+                        if (h$4==v$4)
+                        {
+                            transition = v%4;
+                            transition2= h%4;
+                        }
+                        else
+                        {
+                            if(diff%16==0)
+                            {
+                                transition = v$16;
+                                transition2= h$16;
+                            }
+                            else
+                            {
+                                transition = v%16$4;
+                                transition2= h%16$4;
+                            }
+                        }
+                        if (_Genetic_Code[0][h]==_Genetic_Code[0][v]) /* synonymous */
+                        {
+                            if (Abs(transition-transition2)%2) /* transversion */
+                            {
+                                MG94HKY85_Matrix[h-hshift][v-vshift] := kappa*t*ref_pis__[transition__];
+                                MG94HKY85_Matrix[v-vshift][h-hshift] := kappa*t*ref_pis__[transition2__];
+                            }
+                            else
+                            {
+                                MG94HKY85_Matrix[h-hshift][v-vshift] := t*ref_pis__[transition__];
+                                MG94HKY85_Matrix[v-vshift][h-hshift] := t*ref_pis__[transition2__];
+                            }
+                        }
+                        else
+                        {
+                            if (Abs(transition-transition2)%2) /* transversion */
+                            {
+                                MG94HKY85_Matrix[h-hshift][v-vshift] := omega*kappa*t*ref_pis__[transition__];
+                                MG94HKY85_Matrix[v-vshift][h-hshift] := omega*kappa*t*ref_pis__[transition2__];
+                            }
+                            else
+                            {
+                                MG94HKY85_Matrix[h-hshift][v-vshift] := omega*t*ref_pis__[transition__];
+                                MG94HKY85_Matrix[v-vshift][h-hshift] := omega*t*ref_pis__[transition2__];
+                            }
+                        }
+                    }
+                 }
+             }
+        }	
+    }
 }
 
-return 0;
-	}
-
-function BuildCodonFrequencies (obsF)
-{
+function BuildCodonFrequencies (obsF) {
 	PIStop = 1.0;
 	result = {ModelMatrixDimension,1};
 	hshift = 0;
-	for (h=0; h<64; h=h+1)
-		{
+	for (h=0; h<64; h=h+1) {
 		first = h$16;
 		second = h%16$4;
 		third = h%4;
-		if (_Genetic_Code[h]==10) 
-			{
+		if (_Genetic_Code[h]==10) {
 			hshift = hshift+1;
-			/*PIStop = PIStop-obsF[first][0]*obsF[second][1]*obsF[third][2];*/
 			PIStop = PIStop-ref_pis[first]*ref_pis[second]*ref_pis[third];
 			continue; 
-			}
+		}
 		result[h-hshift]=ref_pis[first]*ref_pis[second]*ref_pis[third];
-		/*result[h-hshift][0]=obsF[first][0]*obsF[second][1]*obsF[third][2];*/
 	}
 	return result*(1.0/PIStop);
 }
 
 
-function calculateEB(nsites,best_fs,d)
-	{
+function calculateEB(nsites,best_fs,d) {
 	BEBFlag=0;
 	NEBFlag=0;
 	if ((EBKind==0) || (EBKind==2)) {BEBFlag=1;}
@@ -271,7 +261,7 @@ function setNeutral(dummy)
 		{
      	global omega = 1;
      	ModelMatrixDimension = 64;
-    	PopulateModelMatrix(0);
+    	PopulateModelMatrix();
 
     	codonFreqs = BuildCodonFrequencies (ref_pis);
   		/*define the codon model */
@@ -667,18 +657,25 @@ fit_repl_count=10;
 d=10; /*BEB discretization*/
 
 fprintf (stdout,"\nA tool for detecting positive selection on promoter sequences\n");
-fprintf (stdout,"Implementation by Olivier Fedrigo (ofedrigo@duke.edu) and Ralph Haygood (rhaygood@duke,edu) 2007\n");
-fprintf (stdout,"---------------------------------\n");
+fprintf (stdout,
+"Implementation by Olivier Fedrigo (ofedrigo@duke.edu) 
+and Ralph Haygood (rhaygood@duke,edu) 2007\n");
+fprintf (stdout,
+"------------------------------------------------------\n");
 
 
 
 /*GET THE NEUTRAL PROXY*/
-ChoiceList (neutralProxy, "Neutral proxy", 1, SKIP_NONE,"Synonymous sites", "Use synonymous substitution from a coding alignment","Intronic sites", "Use intronic sequences",);
+
+ChoiceList (neutralProxy, 
+            "Neutral proxy", 1, SKIP_NONE,
+            "Synonymous sites", "Use synonymous substitution from a coding alignment",
+            "Intronic sites", "Use intronic sequences");
+            
 if (neutralProxy < 0) {return 0;}
 if (neutralProxy==0)
      {
-     incFileName = HYPHY_LIB_DIRECTORY+"TemplateBatchFiles"+DIRECTORY_SEPARATOR+"TemplateModels"+DIRECTORY_SEPARATOR+"chooseGeneticCode.def";
-     ExecuteCommands  ("#include \""+incFileName+"\";");
+     ExecuteAFile (HYPHY_LIB_DIRECTORY+"TemplateBatchFiles"+DIRECTORY_SEPARATOR+"TemplateModels"+DIRECTORY_SEPARATOR+"chooseGeneticCode.def");
      SetDialogPrompt ("Please locate a coding alignment:");
      DataSet 	  ds_ref	   = ReadDataFile (PROMPT_FOR_FILE);
      DataSetFilter dsf_ref   = CreateFilter (ds_ref,3,"","",GeneticCodeExclusions);
@@ -696,7 +693,7 @@ HarvestFrequencies(ref_pis, ds_ref, 1, 1, 1);
 /*GET THE TREE*/
 incFileName = HYPHY_LIB_DIRECTORY+"TemplateBatchFiles"+DIRECTORY_SEPARATOR+"queryTree.bf";
 ExecuteCommands  ("#include \""+incFileName+"\";");
-ChoiceList (branchSp, "Branch Specific?", 1, SKIP_NONE,"No", "Wong and Nielsen test", "Yes", "Branch specific Wong and Nielsen test",);
+ChoiceList (branchSp, "Branch Specific?", 1, SKIP_NONE,"No", "Wong and Nielsen test", "Yes", "Branch specific Wong and Nielsen test");
 if (branchSp < 0) {return 0;}
 if (branchSp==1) /*branch specific*/
     {
@@ -751,7 +748,9 @@ for (sid=0; sid<ds_coding.species; sid=sid+1)
 if (branchSp==0) /*no branch specific*/
     {
     nullKind=0;
-    ChoiceList (alternateKind, "Alternate Model", 1, SKIP_NONE,"Null-Alternate 1", "NULL=Negative selection and Neutral evolution. ALTERNATE= positive selection","Null-Alternate 2", "NULL=Negative selection and Neutral evolution. ALTERNATE= Class 1: Negative, Class 2: neutral evolution and Class 3: positive selection.",);
+    ChoiceList (alternateKind, "Alternate Model", 1, SKIP_NONE,
+        "Null-Alternate 1", "NULL=Negative selection and Neutral evolution. ALTERNATE= positive selection",
+        "Null-Alternate 2", "NULL=Negative selection and Neutral evolution. ALTERNATE= Class 1: Negative, Class 2: neutral evolution and Class 3: positive selection.");
     if (alternateKind < 0) {return 0;}
 
     }
@@ -759,7 +758,7 @@ else /*branch specific*/
     {
     ChoiceList (alternateKind, "Model comparisons", 1, SKIP_NONE,
 					   "Null1-Alternate1", "NULL= Class 1: Negative selection in FG and BG. Class 2: Neutral evolution in FG and BG. ALTERNATE= Class 1: Negative selection or neutral in FG and BG. Class 2: Neutral or neutral evolution in BG and Positive in FG",
-					   "Null2-Alternate2", "NULL= Class 1: Negative selection in FG and BG. Class 2: Neutral evolution in FG and BG. Class 3: Negative selection in BG, Neutral in FG. ALTERNATE= Class 1: Negative selection in FG and BG. Class 2: Neutral evolution in FG and BG. Class 3: Negative selection in BG, Positive in FG. Class 4: Neutral evolution in BG, Positive in FG.",);				   
+					   "Null2-Alternate2", "NULL= Class 1: Negative selection in FG and BG. Class 2: Neutral evolution in FG and BG. Class 3: Negative selection in BG, Neutral in FG. ALTERNATE= Class 1: Negative selection in FG and BG. Class 2: Neutral evolution in FG and BG. Class 3: Negative selection in BG, Positive in FG. Class 4: Neutral evolution in BG, Positive in FG.");				   
     if (alternateKind < 0) {return 0;}
     nullKind=alternateKind;
     alternateKind=alternateKind+2;
@@ -782,7 +781,7 @@ fprintf(stdout,"LRT p-value = ",Format(pvalue,10,10),"\n");
 
 if ((alternateKind==1) || (alternateKind==3))
 {
-ChoiceList (EBKind, "Empirical Bayes", 1, SKIP_NONE, "BEB", "Bayes Empirical Bayes","NEB", "Naive Empirical Bayes","Both", "Bayes Empirical Bayes and Naive Empirical Bayes",);
+ChoiceList (EBKind, "Empirical Bayes", 1, SKIP_NONE, "BEB", "Bayes Empirical Bayes","NEB", "Naive Empirical Bayes","Both", "Bayes Empirical Bayes and Naive Empirical Bayes");
 
 if (EBKind < 0) {return 0;}
 GetInformation(best_fs,site_class); /*gets fraction for each zeta*/
