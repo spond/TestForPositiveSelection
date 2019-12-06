@@ -724,7 +724,7 @@ DataSetFilter dsf_query = CreateFilter (ds_query,1);
 query_path = LAST_FILE_PATH;
 fprintf (stdout, "\nLoaded a ", dsf_query.species, " sequence alignment with ", dsf_query.sites, " nucleotides from\n",query_path,"\n");
 nsites=dsf_query.sites; /*number of sites*/
-npatt=dsf_query.unique_sites; /*number of unique patterns*/
+npatt=Columns (dsf_query.site_freqs); /*number of unique patterns*/
 HarvestFrequencies(quer_pis, ds_query, 1, 1, 1);
 
 /*CHECK IF DATASET ARE COMPATIBLE*/
@@ -815,7 +815,7 @@ if (BEBFlag==1)
 		}
 	labels = {{"Negative selection","Neutral evolution","Positive selection"}};
 	/*Creates a windows with the output*/
-	OpenWindow (CHARTWINDOW,{{"BEB"}
+	/*OpenWindow (CHARTWINDOW,{{"BEB"}
 							   {"labels"},
 							   {"fullSitesBEB"},
 							   {"Bar Chart"},
@@ -825,7 +825,7 @@ if (BEBFlag==1)
 							   {""},
 							   {labels[2]},
 							   {"0"}},
-							   "SCREEN_WIDTH-60;SCREEN_HEIGHT-50;30;50");
+							   "SCREEN_WIDTH-60;SCREEN_HEIGHT-50;30;50");*/
 	}
 if (NEBFlag==1)
 	{
@@ -854,7 +854,7 @@ if (NEBFlag==1)
 	
 	labels = {{"Negative selection","Neutral evolution","Positive selection"}};
 	/*Creates a windows with the output*/
-	OpenWindow (CHARTWINDOW,{{"NEB"}
+	/*OpenWindow (CHARTWINDOW,{{"NEB"}
 							   {"labels"},
 							   {"fullSitesNEB"},
 							   {"Bar Chart"},
@@ -864,7 +864,7 @@ if (NEBFlag==1)
 							   {""},
 							   {labels[2]},
 							   {"0"}},
-							   "SCREEN_WIDTH-60;SCREEN_HEIGHT-50;30;50");
+							   "SCREEN_WIDTH-60;SCREEN_HEIGHT-50;30;50");*/
 	}
 printEB(0);
 }
