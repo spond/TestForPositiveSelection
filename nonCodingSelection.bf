@@ -1,22 +1,22 @@
 function PopulateModelMatrix () {
 
-    ModelMatrixDimension = ModelMatrixDimension - (+_Genetic_Code["_MATRIX_ELEMENT_VALUE_"] == 10);
+    ModelMatrixDimension = 64 - (+_Genetic_Code["_MATRIX_ELEMENT_VALUE_==10"]);
+    MG94HKY85_Matrix = {ModelMatrixDimension,ModelMatrixDimension};
     hshift = 0;
-    for (h=0; h<64; h=h+1)
-    {
+    for (h=0; h<64; h += 1) {
         if (_Genetic_Code[h]==10) 
         {
-            hshift = hshift+1;
+            hshift += 1;
         }
         else
         {
             vshift = hshift;
-            for (v = h+1; v<64; v=v+1)
+            for (v = h+1; v<64; v += 1)
             {
                 diff = v-h;
                 if (_Genetic_Code[v]==10) 
                 {
-                    vshift = vshift+1;
+                    vshift += 1;
                 }
                 else
                 {
