@@ -283,26 +283,20 @@ function fitNullModel(dummy)
 	if (nullKind==0) /*null1*/
 		{
 		log_Ls = {fit_repl_count, 1};
-		for (repl_i = 0; repl_i < fit_repl_count; repl_i = repl_i+1)
-			{
-			kappa = Random(0.0, 10.0);
-			UseModel(quer_submod);
-			Tree quer_hyphy_tree = treeString;
-			UseModel(ref_submod);
-			Tree ref_hyphy_tree = treeString;
-			ReplicateConstraint("this1.?.t := this2.?.t", quer_hyphy_tree, ref_hyphy_tree);
-			LikelihoodFunction L = (dsf_ref, ref_hyphy_tree,dsf_query, quer_hyphy_tree);
-			Optimize(MLEs, L);
-			log_L = MLEs[1][0];
-			log_Ls[repl_i] = log_L;
-			if (repl_i == 0 || best_log_L < log_L)
-				{
-				best_repl_i = repl_i;
-				best_log_L = log_L;
-				best_MLEs = MLEs;
-				}
-			}
-		estimated_kappa = best_MLEs[0][0];
+        UseModel(quer_submod);
+        Tree quer_hyphy_tree = treeString;
+        UseModel(ref_submod);
+        Tree ref_hyphy_tree = treeString;
+        ReplicateConstraint("this1.?.t := this2.?.t", quer_hyphy_tree, ref_hyphy_tree);
+        LikelihoodFunction L = (dsf_ref, ref_hyphy_tree,dsf_query, quer_hyphy_tree);
+        
+        start_grid = {};
+		for (repl_i = 0; repl_i < fit_repl_count; repl_i += 1) {
+		    start_grid [repl_i] = {"kappa" : Random(0.0, 10.0)};
+		}
+
+		Optimize(best_MLEs, L, { "OPTIMIZATION_START_GRID" : start_grid});
+		estimated_kappa = kappa;
 		fprintf(stdout,"*** Null model ***","\n");
 		fprintf(stdout,"inverse kappa: ",estimated_kappa,"\n");
 		}
@@ -322,35 +316,30 @@ function fitNullModel(dummy)
 		global zeta_fgrnd;
 		zeta_fgrnd := (site_class == 0)*zeta0 + ((site_class == 1)+(site_class == 2));
 		log_Ls = {fit_repl_count, 1};
-		for (repl_i = 0; repl_i < fit_repl_count; repl_i = repl_i+1)
-			{
-  			kappa = Random(0.0, 10.0);
-  			f0 = Random(0.0, 1.0);
-  			f_aux = Random(0.0, 1.0);
-  			zeta0 = Random(0.0, 1.0);
-  			UseModel(quer_submod);
-  			Tree quer_hyphy_tree = treeString;
-  			UseModel(ref_submod);
-  			Tree ref_hyphy_tree = treeString;
-  			ReplicateConstraint("this1.?.t := zeta_bgrnd*this2.?.t", quer_hyphy_tree, ref_hyphy_tree);
-  			ExecuteCommands("quer_hyphy_tree."+fgrnd_branch_name+".t := zeta_fgrnd*ref_hyphy_tree."+fgrnd_branch_name+".t;");
-  			LikelihoodFunction L = (dsf_query, quer_hyphy_tree, dsf_ref, ref_hyphy_tree);
-  			Optimize(MLEs, L);
-  			log_L = MLEs[1][0];
-  			log_Ls[repl_i] = log_L;
-  			if (repl_i == 0 || best_log_L < log_L)
-  				{
-    			best_repl_i = repl_i;
-    			best_log_L = log_L;
-    			best_MLEs = MLEs;
-  				}
-			}
-		estimated_kappa = best_MLEs[0][3];
-		estimated_f0 = best_MLEs[0][0];
-		estimated_f_aux = best_MLEs[0][1];
+        UseModel(quer_submod);
+        Tree quer_hyphy_tree = treeString;
+        UseModel(ref_submod);
+        Tree ref_hyphy_tree = treeString;
+        ReplicateConstraint("this1.?.t := zeta_bgrnd*this2.?.t", quer_hyphy_tree, ref_hyphy_tree);
+        ExecuteCommands("quer_hyphy_tree."+fgrnd_branch_name+".t := zeta_fgrnd*ref_hyphy_tree."+fgrnd_branch_name+".t;");
+        LikelihoodFunction L = (dsf_query, quer_hyphy_tree, dsf_ref, ref_hyphy_tree);
+        start_grid = {};
+		for (repl_i = 0; repl_i < fit_repl_count; repl_i += 1) {
+		    start_grid [repl_i] = {
+		        "kappa" : Random(0.0, 10.0),
+		        "f0" : Random (0,1),
+		        "f_aux" : Random (0,1),
+		        "zeta0" : Random (0,1)
+		    };
+		}
+		Optimize(best_MLEs, L, { "OPTIMIZATION_START_GRID" : start_grid});
+
+		estimated_kappa = kappa;
+		estimated_f0 = f0;
+		estimated_f_aux = f_aux;
 		estimated_f1 = (1.0-estimated_f0)*estimated_f_aux;
 		estimated_f2 = (1.0-estimated_f0)*(1.0-estimated_f_aux);
-		estimated_zeta0 = best_MLEs[0][2];
+		estimated_zeta0 = zeta0;
 		fprintf(stdout,"*** Null model ***","\n");
 		fprintf(stdout,"inverse kappa: ",estimated_kappa,"\n");
 		fprintf(stdout, "f0: ", estimated_f0,"\n");
@@ -359,6 +348,7 @@ function fitNullModel(dummy)
 		fprintf(stdout, "zeta0: ", estimated_zeta0,"\n");
 		fprintf(stdout, "zeta1: 1","\n\n");
 		}
+	USE_LAST_RESULTS = 1;
 	return best_MLEs;
 	}
 
@@ -377,28 +367,24 @@ function fitAlternateModel(dummy)
 		global zeta;
 		zeta :> 1;
 		log_Ls = {fit_repl_count, 1};
-		for (repl_i = 0; repl_i < fit_repl_count; repl_i = repl_i+1)
-				{
-  				kappa = Random(0.0, 10.0);
-  				zeta = Random(1.0, 10.0);
-  				UseModel(quer_submod);
-  				Tree quer_hyphy_tree = treeString;
-  				UseModel(ref_submod);
-  				Tree ref_hyphy_tree = treeString;
-  				ReplicateConstraint("this1.?.t := zeta*this2.?.t", quer_hyphy_tree, ref_hyphy_tree);
-  				LikelihoodFunction L = (dsf_query, quer_hyphy_tree, dsf_ref, ref_hyphy_tree);
-  				Optimize(MLEs, L);
-  				log_L = MLEs[1][0];
-  				log_Ls[repl_i] = log_L;
-  				if (repl_i == 0 || best_log_L < log_L)
-  						{
-    					best_repl_i = repl_i;
-    					best_log_L = log_L;
-    					best_MLEs = MLEs;
-  						}
-  				}
-  		estimated_kappa = best_MLEs[0][1];
-		estimated_zeta = best_MLEs[0][0];
+		UseModel(quer_submod);
+        Tree quer_hyphy_tree = treeString;
+        UseModel(ref_submod);
+        Tree ref_hyphy_tree = treeString;
+        ReplicateConstraint("this1.?.t := zeta*this2.?.t", quer_hyphy_tree, ref_hyphy_tree);
+        LikelihoodFunction L = (dsf_query, quer_hyphy_tree, dsf_ref, ref_hyphy_tree);
+		
+		start_grid = {};
+		for (repl_i = 0; repl_i < fit_repl_count; repl_i += 1) {
+		    start_grid [repl_i] = {
+		        "kappa" : Random(0.0, 10.0),
+		        "zeta" : Random (1,10)
+		    };
+		}
+		Optimize(best_MLEs, L, { "OPTIMIZATION_START_GRID" : start_grid});
+
+  		estimated_kappa = kappa;
+		estimated_zeta = zeta;
 		fprintf(stdout,"*** Alternate model ***","\n");
 		fprintf(stdout, "inverse kappa: ", estimated_kappa,"\n");
 		fprintf(stdout, "zeta: ", estimated_zeta,"\n\n");
@@ -420,39 +406,35 @@ function fitAlternateModel(dummy)
 			zeta2 :> 1;
 			global zeta;
 			zeta := (site_class == 0)*zeta0 + (site_class == 1) + (site_class == 2)*zeta2;
-			log_Ls = {fit_repl_count, 1};
-			for (repl_i = 0; repl_i < fit_repl_count; repl_i = repl_i+1)
-				{
-				kappa = Random(0.0, 10.0);
-				f0 = Random(0.0, 1.0);
-				f_aux = Random(0.0, 1.0);
-				zeta0 = Random(0.0, 1.0);
-				zeta2 = Random(1.0, 10.0);
-				UseModel(quer_submod);
-				Tree quer_hyphy_tree = treeString;
-				UseModel(ref_submod);
-				Tree ref_hyphy_tree = treeString;
-				ReplicateConstraint("this1.?.t := zeta*this2.?.t", quer_hyphy_tree, ref_hyphy_tree);
-				LikelihoodFunction L = (dsf_query, quer_hyphy_tree, dsf_ref, ref_hyphy_tree);
-				Optimize(MLEs, L);
-				log_L = MLEs[1][0];
-				log_Ls[repl_i] = log_L;
-				if (repl_i == 0 || best_log_L < log_L)
-					{
-					best_repl_i = repl_i;
-					best_log_L = log_L;
-					best_MLEs = MLEs;
-					}
-				}
+			
+
+        UseModel(quer_submod);
+        Tree quer_hyphy_tree = treeString;
+        UseModel(ref_submod);
+        Tree ref_hyphy_tree = treeString;
+        ReplicateConstraint("this1.?.t := zeta*this2.?.t", quer_hyphy_tree, ref_hyphy_tree);
+        LikelihoodFunction L = (dsf_query, quer_hyphy_tree, dsf_ref, ref_hyphy_tree);
+		start_grid = {};
+		for (repl_i = 0; repl_i < fit_repl_count; repl_i += 1) {
+		    start_grid [repl_i] = {
+		        "kappa" : Random(0.0, 10.0),
+		        "zeta0" : Random (0,1),
+		        "zeta2" : Random (1,10),
+		        "f0" : Random (0,1),
+		        "f_aux" : Random (0,1)
+		    };
+		}
+		Optimize(best_MLEs, L, { "OPTIMIZATION_START_GRID" : start_grid});
+
 		fprintf(stdout,"*** Alternate model ***","\n");
-		estimated_kappa = best_MLEs[0][4];
-		estimated_f0 = best_MLEs[0][0];
-		estimated_f_aux = best_MLEs[0][1];
+		estimated_kappa = kappa;
+		estimated_f0 = f0;
+		estimated_f_aux = f_aux;
 		estimated_f1 = (1.0-estimated_f0)*estimated_f_aux;
 		estimated_f2 = (1.0-estimated_f0)*(1.0-estimated_f_aux);
 		estimated_f3 = (1.0-estimated_f0)*(1.0-estimated_f_aux)*(1.0-estimated_f0)*estimated_f_aux/(estimated_f0 + (1.0-estimated_f0)*estimated_f_aux);
-		estimated_zeta0 = best_MLEs[0][2];
-		estimated_zeta2 = best_MLEs[0][3];
+		estimated_zeta0 = zeta0;
+		estimated_zeta2 = zeta2;
 		fprintf(stdout, "f0: ", estimated_f0,"\n");
 		fprintf(stdout, "f1: ", estimated_f1,"\n");
 		fprintf(stdout, "f2: ", estimated_f2,"\n");
@@ -468,31 +450,28 @@ function fitAlternateModel(dummy)
 				global zeta_fgrnd;
 				zeta_fgrnd :> 1;
 				/* Fit model to data sets. */
-				log_Ls = {fit_repl_count, 1};
-				for (repl_i = 0; repl_i < fit_repl_count; repl_i = repl_i+1)
-					{
-  					kappa = Random(0.0, 10.0);
-  					zeta_fgrnd = Random(1.0, 10.0);
-  					UseModel(quer_submod);
-  					Tree quer_hyphy_tree = treeString;
-  					UseModel(ref_submod);
-  					Tree ref_hyphy_tree = treeString;
-  					ReplicateConstraint("this1.?.t := this2.?.t", quer_hyphy_tree, ref_hyphy_tree);
-  					ExecuteCommands("quer_hyphy_tree."+fgrnd_branch_name+".t := zeta_fgrnd*ref_hyphy_tree."+fgrnd_branch_name+".t;");
-  					LikelihoodFunction L = (dsf_query, quer_hyphy_tree, dsf_ref, ref_hyphy_tree);
-  					Optimize(MLEs, L);
-  					log_L = MLEs[1][0];
-  					log_Ls[repl_i] = log_L;
-  					if (repl_i == 0 || best_log_L < log_L)
-  						{
-    					best_repl_i = repl_i;
-    					best_log_L = log_L;
-    					best_MLEs = MLEs;
-  						}
-					}
+                UseModel(quer_submod);
+                Tree quer_hyphy_tree = treeString;
+                UseModel(ref_submod);
+                Tree ref_hyphy_tree = treeString;
+                ReplicateConstraint("this1.?.t := this2.?.t", quer_hyphy_tree, ref_hyphy_tree);
+                ExecuteCommands("quer_hyphy_tree."+fgrnd_branch_name+".t := zeta_fgrnd*ref_hyphy_tree."+fgrnd_branch_name+".t;");
+                LikelihoodFunction L = (dsf_query, quer_hyphy_tree, dsf_ref, ref_hyphy_tree);
+				
+
+                start_grid = {};
+                for (repl_i = 0; repl_i < fit_repl_count; repl_i += 1) {
+                    start_grid [repl_i] = {
+                        "kappa" : Random(0.0, 10.0),
+                        "zeta_fgrnd" : Random (1,10)
+                
+                    };
+                }
+		        Optimize(best_MLEs, L, { "OPTIMIZATION_START_GRID" : start_grid});
+
 				fprintf(stdout,"*** Alternate model ***","\n");
-				estimated_kappa = best_MLEs[0][1];
-				estimated_zeta = best_MLEs[0][0];
+				estimated_kappa = kappa;
+				estimated_zeta = zeta;
 				fprintf(stdout,"inverse kappa: ",estimated_kappa,"\n");
 				fprintf(stdout, "zeta: ", estimated_zeta,"\n\n");
 				}
@@ -513,40 +492,34 @@ function fitAlternateModel(dummy)
 				zeta_bgrnd := ((site_class == 0)+(site_class == 2))*zeta0 + ((site_class == 1)+(site_class == 3));
 				global zeta_fgrnd;
 				zeta_fgrnd := (site_class == 0)*zeta0 + (site_class == 1) + ((site_class == 2)+(site_class == 3))*zeta2;
-				log_Ls = {fit_repl_count, 1};
-				for (repl_i = 0; repl_i < fit_repl_count; repl_i = repl_i+1)
-					{
-				 	kappa = Random(0.0, 10.0);
-				  	f0 = Random(0.0, 1.0);
-				  	f_aux = Random(0.0, 1.0);
-				  	zeta0 = Random(0.0, 1.0);
-				  	zeta2 = Random(1.0, 10.0);
-				  	UseModel(quer_submod);
-				  	Tree quer_hyphy_tree = treeString;
-				  	UseModel(ref_submod);
-				  	Tree ref_hyphy_tree = treeString;
-				  	ReplicateConstraint("this1.?.t := zeta_bgrnd*this2.?.t", quer_hyphy_tree, ref_hyphy_tree);
-				  	ExecuteCommands("quer_hyphy_tree."+fgrnd_branch_name+".t := zeta_fgrnd*ref_hyphy_tree."+fgrnd_branch_name+".t;");
-				 	LikelihoodFunction L = (dsf_query, quer_hyphy_tree, dsf_ref, ref_hyphy_tree);
-				  	Optimize(MLEs, L);
-				  	log_L = MLEs[1][0];
-				  	log_Ls[repl_i] = log_L;
-				  	if (repl_i == 0 || best_log_L < log_L)
-				  		{
-						best_repl_i = repl_i;
-						best_log_L = log_L;
-						best_MLEs = MLEs;
-				  		}
-					}
+                UseModel(quer_submod);
+                Tree quer_hyphy_tree = treeString;
+                UseModel(ref_submod);
+                Tree ref_hyphy_tree = treeString;
+                ReplicateConstraint("this1.?.t := zeta_bgrnd*this2.?.t", quer_hyphy_tree, ref_hyphy_tree);
+                ExecuteCommands("quer_hyphy_tree."+fgrnd_branch_name+".t := zeta_fgrnd*ref_hyphy_tree."+fgrnd_branch_name+".t;");
+                LikelihoodFunction L = (dsf_query, quer_hyphy_tree, dsf_ref, ref_hyphy_tree);
+                start_grid = {};
+                for (repl_i = 0; repl_i < fit_repl_count; repl_i += 1) {
+                    start_grid [repl_i] = {
+                        "kappa" : Random(0.0, 10.0),
+                        "zeta0" : Random (0,1),
+                        "zeta2" : Random (1,10),
+                        "f0" : Random (0,1),
+                        "f_aux" : Random (0,1)
+                
+                    };
+                }
 				/*alt2 branch spec*/
-				estimated_kappa = best_MLEs[0][4];
-				estimated_f0 = best_MLEs[0][0];
-				estimated_f_aux = best_MLEs[0][1];
+		        Optimize(best_MLEs, L, { "OPTIMIZATION_START_GRID" : start_grid});
+				estimated_kappa = kappa;
+				estimated_f0 = f0;
+				estimated_f_aux = f_aux;
 				estimated_f1 = (1.0-estimated_f0)*estimated_f_aux;
 				estimated_f2 = (1.0-estimated_f0)*(1.0-estimated_f_aux);
 				estimated_f3 = (1.0-estimated_f0)*(1.0-estimated_f_aux)*(1.0-estimated_f0)*estimated_f_aux/(estimated_f0 + (1.0-estimated_f0)*estimated_f_aux);
-				estimated_zeta0 = best_MLEs[0][2];
-				estimated_zeta2 = best_MLEs[0][3];
+				estimated_zeta0 = zeta0;
+				estimated_zeta2 = zeta2;
 				fprintf(stdout,"*** Alternate model ***","\n");
 				fprintf(stdout,"inverse kappa: ", estimated_kappa,"\n");
 				fprintf(stdout, "f0: ", estimated_f0,"\n");
@@ -650,9 +623,9 @@ function printEB(dummy)
 	return 0;
     }
 /*--------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
-NICETY_LEVEL = 3;
 LIKELIHOOD_FUNCTION_OUTPUT = 5;
 MAXIMUM_ITERATIONS_PER_VARIABLE = 10000;
+
 fit_repl_count=10;
 d=10; /*BEB discretization*/
 
